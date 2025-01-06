@@ -11,8 +11,8 @@ const StudentDashboard = () => {
             try {
                 console.log("Fetching tree data from API...");
 
-                const email = "fst@example.com";
-                const password = "fst";
+                const email = "bob@example.com";
+                const password = "p";
 
                 // Making a GET request with data in the body
                 const response = await axios({

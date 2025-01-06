@@ -37,7 +37,6 @@ exports.register = async (req, res) => {
 
 
 
-// Updated login function
 exports.login = async (req, res) => {
     const { email, password } = req.body;
 
@@ -50,20 +49,17 @@ exports.login = async (req, res) => {
         const user = await User.findOne({ email });
         if (!user) {
             console.log(`User not found with email: ${email}`);
-            return res.status(404).json({ message: "Invalid credentials" });
+            return res.status(404).json({ message: "User not found" });
         }
 
-        // Hash the incoming password
-        const isMatch = await bcrypt.compare(password, user.password); // bcrypt automatically hashes and compares
-
-        // Compare with the stored hashed password
-        if (!isMatch) {
-            console.log(`Password mismatch for email: ${email}`);
+        // Directly compare the plaintext password with the stored password
+        if (password !== user.password) {
+            console.log(`Invalid credentials for email: ${email}`);
             return res.status(401).json({ message: "Invalid credentials" });
         }
 
-        // Login successful, return role and message
-        console.log(`Login successful for email: ${email}`);
+        // If the password matches, return the user's role and success message
+        console.log(`Login successful for user: ${email}`);
         const role = user.role;
         res.status(200).json({ message: "Login successful", role });
     } catch (error) {

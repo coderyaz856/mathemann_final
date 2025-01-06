@@ -20,6 +20,14 @@ app.use(cors({
 connectDB();
 
 // Routes
+app.use((req, res, next) => {
+    if (req.method === 'GET' && req.headers['content-type'] === 'application/json') {
+        bodyParser.json()(req, res, next);
+    } else {
+        next();
+    }
+});
+
 app.use('/api/users', require('./routes/UserRoute'));
 app.use('/api/tree', require('./routes/TreeRoute'));
 app.use('/api/dashboard', require('./routes/DashboardRoute'));
