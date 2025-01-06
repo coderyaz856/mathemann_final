@@ -1,0 +1,34 @@
+.home-container {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    color: #333;
+    font-family: 'Arial', sans-serif;
+}
+
+    .home-container h1 {
+        font-size: 2.5rem;
+        color: #01579b;
+        margin-bottom: 1rem;
+    }
+
+    .home-container p {
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+        color: #555;
+    }
+
+.cta-button {
+    padding: 1rem 2rem;
+    background: linear-gradient(90deg, #0288d1, #03a9f4);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+    .cta-button:hover {
+        background: linear-gradient(90deg, #0277bd, #039be5);
+    }
