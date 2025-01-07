@@ -48,18 +48,16 @@ exports.login = async (req, res) => {
         // Find the user by email
         const user = await User.findOne({ email });
         if (!user) {
-            console.log(`User not found with email: ${email}`);
             return res.status(404).json({ message: "User not found" });
         }
 
-        // Directly compare the plaintext password with the stored password
-        if (password !== user.password) {
-            console.log(`Invalid credentials for email: ${email}`);
+        // Compare plaintext password with the hashed password in the database
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
             return res.status(401).json({ message: "Invalid credentials" });
         }
 
         // If the password matches, return the user's role and success message
-        console.log(`Login successful for user: ${email}`);
         const role = user.role;
         res.status(200).json({ message: "Login successful", role });
     } catch (error) {
@@ -67,6 +65,8 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: "An error occurred during login", error: error.message });
     }
 };
+
+
 
 
 

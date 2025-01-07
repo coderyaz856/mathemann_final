@@ -11,26 +11,32 @@ const Login = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         setError(null);
-
+    
         try {
-            // Send login request
-            const response = await axios.post('http://localhost:5000/api/users/login', { email, password });
+            const response = await axios.post("http://localhost:5000/api/users/login", { email, password });
             console.log("Login response:", response.data);
-
-            // Handle role and navigate
+    
             const role = response.data.role;
-            if (role === 'student') {
-                navigate('/dashboard/student');
-            } else if (role === 'teacher') {
-                navigate('/dashboard/teacher');
+    
+            // Save user credentials in local storage
+            localStorage.setItem(
+                "userCredentials",
+                JSON.stringify({ email, password, role })
+            );
+    
+            if (role === "student") {
+                navigate("/dashboard/student");
+            } else if (role === "teacher") {
+                navigate("/dashboard/teacher");
             } else {
-                setError('Unknown user role. Please contact support.');
+                setError("Unknown user role. Please contact support.");
             }
         } catch (err) {
             console.error("Login error:", err.response?.data || err.message);
-            setError(err.response?.data?.message || 'An error occurred. Please try again.');
+            setError(err.response?.data?.message || "An error occurred. Please try again.");
         }
     };
+    
 
     return (
         <div className="auth-container">

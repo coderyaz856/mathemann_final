@@ -1,26 +1,30 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const User = require('./backend/models/User'); // Replace with the correct path to your User model
-
-mongoose.connect('mongodb://localhost:27017/DBC', { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log('Connected to MongoDB'))
-    .catch((err) => console.error('Database connection error:', err));
+const bcrypt = require('bcryptjs');
+const User = require('./backend/models/User'); // Update with the correct path to your User model
 
 const hashPasswords = async () => {
     try {
-        const users = await User.find({});
+        await mongoose.connect('mongodb://localhost:27017/DBC'); // Replace with your DB connection string
+
+        const users = await User.find(); // Fetch all users
+
         for (const user of users) {
-            if (!user.password.startsWith('$2b$')) { // Skip already hashed passwords
-                user.password = await bcrypt.hash(user.password, 10);
+            if (!user.password.startsWith('$2a$')) { // Skip already hashed passwords
+                console.log(`Hashing password for user: ${user.email}`);
+                const hashedPassword = await bcrypt.hash(user.password, 10);
+                user.password = hashedPassword;
                 await user.save();
                 console.log(`Password hashed for user: ${user.email}`);
+            } else {
+                console.log(`Password already hashed for user: ${user.email}`);
             }
         }
-        console.log('Password hashing complete.');
-        mongoose.connection.close();
-    } catch (err) {
-        console.error('Error hashing passwords:', err);
-        mongoose.connection.close();
+
+        console.log('All passwords hashed successfully!');
+        process.exit();
+    } catch (error) {
+        console.error('Error hashing passwords:', error);
+        process.exit(1);
     }
 };
 
