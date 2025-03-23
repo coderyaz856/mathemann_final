@@ -1,30 +1,38 @@
 const Tree = require('../models/Tree');
 const User = require('../models/User');
 
-// Get student dashboard
+// backend/controllers/DashboardController.js
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+
 exports.getStudentDashboard = async (req, res) => {
-    const { email, password } = req.query;
-
-    if (!email || !password) {
-        return res.status(400).json({ message: "Email and password are required" });
-    }
-
     try {
-        // Find the student user by email
-        const user = await User.findOne({ email, role: 'student' });
-        if (!user) {
-            return res.status(404).json({ message: "Student not found or not authorized" });
+        const token = req.headers.authorization.split(' ')[1];
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decodedToken.userId;
+
+        // Fetch user details
+        const student = await User.findById(userId)
+            .populate({
+                path: 'studies.chapter',
+                model: 'Chapter'
+            })
+            .populate('domains');
+
+        if (!student) {
+            return res.status(404).json({ message: 'Student not found' });
         }
 
-        // Compare the provided password with the hashed password
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(401).json({ message: "Invalid credentials" });
-        }
+        // Calculate account stats
+        const accountStats = {
+            totalChaptersCompleted: student.studies.filter(study => study.completed).length,
+            totalDomainsEnrolled: student.domains.length,
+            totalStudySessions: student.studies.length
+        };
 
         // Calculate age based on the birthday
         const currentYear = new Date().getFullYear();
-        const birthYear = new Date(user.birthday).getFullYear();
+        const birthYear = new Date(student.birthday).getFullYear();
         const age = currentYear - birthYear;
 
         // Fetch tree data filtered by age ranges
@@ -39,10 +47,16 @@ exports.getStudentDashboard = async (req, res) => {
             return res.status(404).json({ message: "No matching tree data found for the student" });
         }
 
-        res.status(200).json(tree);
+        res.status(200).json({
+            student,
+            domains: student.domains,
+            chapters: student.studies.map(study => study.chapter),
+            accountStats,
+            tree
+        });
     } catch (error) {
-        console.error('Error fetching tree:', error);
-        res.status(500).json({ message: 'Error fetching student dashboard', error: error.message });
+        console.error(error);
+        res.status(500).json({ message: 'Failed to fetch dashboard data', error: error.message });
     }
 };
 

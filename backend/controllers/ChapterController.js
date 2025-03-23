@@ -11,13 +11,22 @@ exports.getAllChapters = async (req, res) => {
 };
 
 // Get a chapter by ID
-exports.getChapterById = async (req, res) => {
+const getChapterById = async (req, res) => {
     try {
-        const chapter = await Chapter.findById(req.params.id);
-        if (!chapter) return res.status(404).json({ message: 'Chapter not found' });
+        const chapterId = req.params.id;
+
+        const chapter = await Chapter.findById(chapterId)
+            .populate('quizzes')
+            .exec();
+
+        if (!chapter) {
+            return res.status(404).json({ message: 'Chapter not found' });
+        }
+
         res.status(200).json(chapter);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching chapter', error });
+        console.error('Error fetching chapter:', error);
+        res.status(500).json({ message: 'Error retrieving chapter data' });
     }
 };
 
