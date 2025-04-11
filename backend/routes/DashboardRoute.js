@@ -18,7 +18,6 @@ const calculateAge = (birthday) => {
     return age;
 };
 
-
 const calculateStudyHours = (studies) => {
     if (!studies || studies.length === 0) return 0;
     
@@ -34,7 +33,6 @@ const calculateStudyHours = (studies) => {
     
     return currentMonthStudies.length;
 };
-
 
 const calculateActiveStreak = (studies) => {
     if (!studies || studies.length === 0) return 0;
@@ -433,6 +431,98 @@ router.get('/teacher', async (req, res) => {
     } catch (error) {
         console.error('Error fetching teacher dashboard:', error);
         res.status(500).json({ message: 'Error fetching teacher dashboard', error: error.message });
+    }
+});
+
+// GET route for teacher dashboard stats
+router.get('/teacher/stats', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        
+        // Verify this is a teacher
+        const teacher = await User.findById(userId);
+        if (!teacher || teacher.role !== 'teacher') {
+            return res.status(403).json({ message: 'Access denied. Only teachers can access these stats.' });
+        }
+        
+        // Find all students
+        const students = await User.find({ role: 'student' });
+        
+        // Mock student progress data
+        const studentData = students.map(student => ({
+            ...student.toObject(),
+            progress: {
+                completedChapters: Math.floor(Math.random() * 20),
+                totalChapters: 20,
+                avgScore: Math.floor(Math.random() * 30) + 60
+            },
+            quizAvgScore: Math.floor(Math.random() * 30) + 60,
+            lastActivity: new Date(Date.now() - Math.floor(Math.random() * 10) * 24 * 60 * 60 * 1000)
+        }));
+        
+        // Calculate stats
+        const totalStudents = studentData.length;
+        const activeStudents = studentData.filter(student => 
+            student.lastActivity && new Date(student.lastActivity) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        ).length;
+        
+        const avgCompletion = Math.round(studentData.reduce((sum, student) => 
+            sum + (student.progress?.completedChapters / student.progress?.totalChapters || 0), 0) * 100 / totalStudents);
+        
+        const avgScore = Math.round(studentData.reduce((sum, student) => 
+            sum + (student.quizAvgScore || 0), 0) / totalStudents);
+        
+        // Domain stats
+        const domainStats = [
+            { name: 'Algebra', studentCount: Math.ceil(totalStudents * 0.8), avgCompletion: 75, avgScore: 82 },
+            { name: 'Geometry', studentCount: Math.ceil(totalStudents * 0.7), avgCompletion: 68, avgScore: 79 },
+            { name: 'Statistics', studentCount: Math.ceil(totalStudents * 0.5), avgCompletion: 52, avgScore: 71 },
+            { name: 'Calculus', studentCount: Math.ceil(totalStudents * 0.3), avgCompletion: 43, avgScore: 68 }
+        ];
+        
+        // Create mock activity data
+        const recentActivity = [
+            { 
+                student: 'Emily Johnson', 
+                action: 'Completed Algebra Chapter 4', 
+                date: new Date(Date.now() - 2 * 60 * 60 * 1000),
+                score: 92
+            },
+            { 
+                student: 'Michael Brown', 
+                action: 'Started Geometry Chapter 2', 
+                date: new Date(Date.now() - 6 * 60 * 60 * 1000)
+            },
+            { 
+                student: 'Sarah Miller', 
+                action: 'Completed Statistics Quiz', 
+                date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+                score: 88
+            },
+            { 
+                student: 'John Smith', 
+                action: 'Completed Calculus Chapter 1', 
+                date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+                score: 75
+            }
+        ];
+        
+        const stats = {
+            totalStudents,
+            activeStudents,
+            avgCompletion,
+            avgScore,
+            domainStats,
+            recentActivity
+        };
+        
+        res.status(200).json(stats);
+    } catch (error) {
+        console.error('Error fetching teacher stats:', error);
+        res.status(500).json({
+            message: 'Failed to fetch teacher statistics',
+            error: error.message
+        });
     }
 });
 

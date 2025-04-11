@@ -74,6 +74,18 @@
     color: #2196f3;
 }
 
+/* Add active tab styling */
+.sidebar-tab.active-tab {
+    background-color: #e3f2fd;
+    color: #2196f3;
+    border-left: 3px solid #2196f3;
+}
+
+.sidebar-tab.active-tab span {
+    opacity: 1;
+    transform: translateX(0);
+}
+
 .active-tab {
     background-color: #e3f2fd;
     color: #2196f3;

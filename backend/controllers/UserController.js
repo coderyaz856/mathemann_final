@@ -118,6 +118,31 @@ exports.getUsers = async (req, res) => {
     }
 };
 
+// Get all students (for teacher dashboard)
+exports.getAllStudents = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        
+        // Check if the user is a teacher
+        const teacher = await User.findById(userId);
+        if (!teacher || teacher.role !== 'teacher') {
+            return res.status(403).json({ message: 'Access denied. Only teachers can view student lists.' });
+        }
+        
+        // Find all students
+        const students = await User.find({ role: 'student' })
+            .select('name email birthday progress lastActive');
+            
+        res.status(200).json(students);
+    } catch (error) {
+        console.error('Error fetching students:', error);
+        res.status(500).json({ 
+            message: 'Error fetching students', 
+            error: error.message 
+        });
+    }
+};
+
 // Get user by ID
 exports.getUserById = async (req, res) => {
     const { id } = req.params;
@@ -254,3 +279,4 @@ exports.updateProfile = async (req, res) => {
         res.status(500).json({ message: "Error updating profile" });
     }
 };
+
